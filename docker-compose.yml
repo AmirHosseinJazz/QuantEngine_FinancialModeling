@@ -1,0 +1,29 @@
+services:
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./dashboard:/app
+    environment:
+      MLFLOW_TRACKING_URI: "http://mlflow:8080"
+    networks:
+      - cryptic_cryptic_network
+  mlflow:
+    build:
+      context: ./mlflow
+      dockerfile: Dockerfile
+    environment:
+      MLFLOW_TRACKING_URI: "http://mlflow:8080"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./mlflow/mlflow:/mlflow
+      - ./mlflow:/app
+    networks:
+      - cryptic_cryptic_network
+networks:
+  cryptic_cryptic_network:
+    external: true

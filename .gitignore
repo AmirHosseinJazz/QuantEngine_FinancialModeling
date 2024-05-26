@@ -1,0 +1,8 @@
+*.pyc
+mlflow/mlartifacts/*
+mlflow/mlartifacts/
+mlflow/mlruns/*
+mlflow/mlruns/
+mlflow/.env
+dashboard/.env
+.env
