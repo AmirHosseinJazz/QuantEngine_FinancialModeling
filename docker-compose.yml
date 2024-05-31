@@ -1,29 +1,58 @@
 services:
-  dashboard:
-    build:
-      context: ./dashboard
-      dockerfile: Dockerfile
+  # dashboard:
+  #   build:
+  #     context: ./dashboard
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8501:8501"
+  #   volumes:
+  #     - ./dashboard:/app
+  #   environment:
+  #     MLFLOW_TRACKING_URI: "http://mlflow:8080"
+  #   networks:
+  #     - cryptic_net
+  # mlflow:
+  #   build:
+  #     context: ./mlflow
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     MLFLOW_TRACKING_URI: "http://mlflow:8080"
+  #   ports:
+  #     - "8080:8080"
+  #   volumes:
+  #     - ./mlflow/mlflow:/mlflow
+  #     - ./mlflow:/app
+  #   networks:
+  #     - cryptic_net
+  grafana:
+    image: grafana/grafana:latest
+    user: "root"
     ports:
-      - "8501:8501"
+      - "3000:3000"
     volumes:
-      - ./dashboard:/app
+      - ./grafana/grafana_data:/var/lib/grafana
+      - ./grafana:/app
+      - ./grafana/datasource:/etc/grafana/provisioning/datasources
+      - ./grafana/grafana-entrypoint.sh:/etc/grafana/grafana-entrypoint.sh
+      # - ./grafana-provisioning/datasources:/etc/grafana/provisioning/datasources # Add this line
+
     environment:
-      MLFLOW_TRACKING_URI: "http://mlflow:8080"
+      GF_SECURITY_ADMIN_USER: "admin"
+      GF_SECURITY_ADMIN_PASSWORD: "admin"
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE: ${DATABASE}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      LOCAL_TIMESCALE_PORT: ${LOCAL_TIMESCALE_PORT}
+      TIMESCALE_HOST_NAME: ${TIMESCALE_HOST_NAME}
+      TIMESCALE_DATABASE: ${TIMESCALE_DATABASE}
+      TIMESCALE_USER: ${TIMESCALE_USER}
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD}
+
+    entrypoint: ["/etc/grafana/grafana-entrypoint.sh"]
     networks:
-      - cryptic_cryptic_network
-  mlflow:
-    build:
-      context: ./mlflow
-      dockerfile: Dockerfile
-    environment:
-      MLFLOW_TRACKING_URI: "http://mlflow:8080"
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./mlflow/mlflow:/mlflow
-      - ./mlflow:/app
-    networks:
-      - cryptic_cryptic_network
+      - cryptic_net
 networks:
-  cryptic_cryptic_network:
+  cryptic_net:
     external: true

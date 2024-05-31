@@ -7,6 +7,7 @@ import time
 from datetime import datetime
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from pytz import timezone
 
 load_dotenv()
 _forex_assets = os.getenv("FOREX_ASSETS").split(",")
@@ -156,20 +157,24 @@ with tab3:
         last_update_1M = datetime.fromtimestamp(
             int(_last_update_candles["lastUpdate_1M"] / 1000)
         )
+        cet = timezone("CET")
+        cet_time = last_update_1M.astimezone(cet)
         relative_time = relativedelta(now, last_update_1M)
         annotated_text(
             ("1 Minute", "Date"),
-            (str(last_update_1M), ""),
+            (str(cet_time), ""),
             (str(relative_time.minutes), "Minutes Behind"),
+            # (str(_last_update_candles["lastUpdate_1M"].iloc[0]), "Timestamp"),
         )
         # 1H
         last_update_1H = datetime.fromtimestamp(
             int(_last_update_candles["lastUpdate_1H"] / 1000)
         )
+        cet_time_1H = last_update_1H.astimezone(cet)
         relative_time = relativedelta(now, last_update_1H)
         annotated_text(
             ("1 Hour", "Date"),
-            (str(last_update_1H), ""),
+            (str(cet_time_1H), ""),
             (str(relative_time.hours), "Hours Behind"),
         )
 
@@ -178,9 +183,10 @@ with tab3:
             int(_last_update_candles["lastUpdate_1D"] / 1000)
         )
         relative_time = relativedelta(now, last_update_1D)
+        cet_time_1D = last_update_1D.astimezone(cet)
         annotated_text(
             ("1 Day", "Date"),
-            (str(last_update_1D), ""),
+            (str(cet_time_1D), ""),
             (str(relative_time.days), "Days Behind"),
         )
     except Exception as E:
@@ -195,19 +201,21 @@ with tab3:
             int(_last_update_technicals["lastUpdate_1M"] / 1000)
         )
         relative_time = relativedelta(now, last_update_1M)
+        cet_time_1M_tech = last_update_1M.astimezone(cet)
         annotated_text(
             ("1 Minute", "Date"),
-            (str(last_update_1M), ""),
+            (str(cet_time_1M_tech), ""),
             (str(relative_time.minutes), "Minutes Behind"),
         )
         # 1H
         last_update_1H = datetime.fromtimestamp(
             int(_last_update_technicals["lastUpdate_1H"] / 1000)
         )
+        cet_time_1H_tech = last_update_1H.astimezone(cet)
         relative_time = relativedelta(now, last_update_1H)
         annotated_text(
             ("1 Hour", "Date"),
-            (str(last_update_1H), ""),
+            (str(cet_time_1H_tech), ""),
             (str(relative_time.hours), "Hours Behind"),
         )
 
@@ -216,9 +224,10 @@ with tab3:
             int(_last_update_technicals["lastUpdate_1D"] / 1000)
         )
         relative_time = relativedelta(now, last_update_1D)
+        cet_time_1D_tech = last_update_1D.astimezone(cet)
         annotated_text(
             ("1 Day", "Date"),
-            (str(last_update_1D), ""),
+            (str(cet_time_1D_tech), ""),
             (str(relative_time.days), "Days Behind"),
         )
     except Exception as E:
@@ -232,6 +241,7 @@ with tab3:
             _last_update_events["date"][0], "%Y-%m-%d"
         )
         relative_time = relativedelta(now, last_update_start)
+        cet_time_event= last_update_start.astimezone(cet)
         if relative_time.days < 0:
             annotated_text(
                 ("Last Event", "Date"),

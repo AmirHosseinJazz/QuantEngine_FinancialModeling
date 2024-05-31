@@ -6,3 +6,4 @@ mlflow/mlruns/
 mlflow/.env
 dashboard/.env
 .env
+grafana/grafana_data

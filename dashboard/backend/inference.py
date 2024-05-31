@@ -14,7 +14,7 @@ from datetime import datetime
 import pytz
 
 
-def univariate_LR_inference(model_name="benchmark_uni_lr_minutely", model_version=1):
+def univariate_LR_inference(model_name="benchmark_uni_rf_minute", model_version=1):
     client = MlflowClient()
     model = mlflow.pyfunc.load_model(model_uri=f"models:/{model_name}/{model_version}")
     run_id = model.metadata.run_id
@@ -46,11 +46,12 @@ def univariate_LR_inference(model_name="benchmark_uni_lr_minutely", model_versio
 
     X = np.array(df_preprocess).reshape(1, -1)
     prediction = model.predict(X)
+    print(df_preprocess)
 
     transition = pd.DataFrame(
         index=[df_preprocess.index[-1], prediciton_time],
         columns=["log_return"],
-        data=[df_preprocess["log_return"].iloc[-1], prediction[0][0]],
+        data=[df_preprocess["log_return"].iloc[-1], prediction[0]],
     )
     df_preprocess.index = (
         pd.to_datetime(df_preprocess.index, unit="ms")
@@ -74,5 +75,5 @@ def all_models(
     return requested_models
 
 
-if __name__ == "__main__":
-    univariate_LR_inference()
+# if __name__ == "__main__":
+#     univariate_LR_inference()

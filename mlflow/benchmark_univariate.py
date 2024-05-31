@@ -248,6 +248,81 @@ def RF(
     )
 
 
+def RF_create_model(
+    symbol="BTCUSDT",
+    candle="Close",
+    startDate="1514764800000",
+    endDate="1715904000000",
+    interval="1d",
+    train_size=0.8,
+    window_size=20,
+    horizon=1,
+    model_params={},
+):
+    params = {
+        "symbol": symbol,
+        "candle": candle,
+        "startDate": startDate,
+        "endDate": endDate,
+        "interval": interval,
+        "train_size": train_size,
+        "window_size": window_size,
+        "horizon": horizon,
+    }
+    data = preprocess.preprocess_univariate_candle(
+        symbol, candle, startDate, endDate, interval
+    )
+
+    data = data[["log_return"]]
+
+    X_train, y_train, X_test, y_test, train_time, test_time = (
+        preprocess.split_time_series(
+            data,
+            train_size,
+            window_size,
+            horizon,
+            mode="univariate",
+            target="log_return",
+        )
+    )
+    X_train = np.array(X_train).reshape(len(X_train), window_size)
+    y_train = np.array(y_train).reshape(len(y_train), 1)
+    X_test = np.array(X_test).reshape(len(X_test), window_size)
+    y_test = np.array(y_test).reshape(len(y_test), 1)
+
+    model = RandomForestRegressor(
+        n_estimators=model_params["n_estimators"],
+        max_depth=model_params["max_depth"],
+        min_samples_split=model_params["min_samples_split"],
+        min_samples_leaf=model_params["min_samples_leaf"],
+        random_state=42,
+    )
+
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+    mse = mean_squared_error(y_test, predictions)
+    mlflow.set_tracking_uri("http://localhost:8080")
+    mlflow.set_experiment("Published_Experiments")
+    # Log parameters and metrics with MLflow
+    with mlflow.start_run(nested=True):
+        mlflow.log_params(
+            {
+                "n_estimators": model_params["n_estimators"],
+                "max_depth": model_params["max_depth"],
+                "min_samples_split": model_params["min_samples_split"],
+                "min_samples_leaf": model_params["min_samples_leaf"],
+                "model_type": "RandomForestRegressor",
+            }
+        )
+        for key, value in params.items():
+            mlflow.log_param(key, value)
+        mlflow.log_metric("mse", mse)
+        mlflow.set_tag("model", "RandomForestRegressor")
+        signature = infer_signature(X_train, model.predict(X_train))
+        model_info = mlflow.sklearn.log_model(model, "model", signature=signature)
+        print(model_info.model_uri)
+
+
 ### Decision Tree Regressor
 def DT_optimizer(trial, X_train, y_train, X_test, y_test, params):
     max_depth = trial.suggest_int("max_depth", 2, 32)
@@ -332,6 +407,79 @@ def DT(
     )
 
 
+def DT_create_model(
+    symbol="BTCUSDT",
+    candle="Close",
+    startDate="1514764800000",
+    endDate="1715904000000",
+    interval="1d",
+    train_size=0.8,
+    window_size=20,
+    horizon=1,
+    model_params={},
+):
+    params = {
+        "symbol": symbol,
+        "candle": candle,
+        "startDate": startDate,
+        "endDate": endDate,
+        "interval": interval,
+        "train_size": train_size,
+        "window_size": window_size,
+        "horizon": horizon,
+    }
+    data = preprocess.preprocess_univariate_candle(
+        symbol, candle, startDate, endDate, interval
+    )
+
+    data = data[["log_return"]]
+
+    X_train, y_train, X_test, y_test, train_time, test_time = (
+        preprocess.split_time_series(
+            data,
+            train_size,
+            window_size,
+            horizon,
+            mode="univariate",
+            target="log_return",
+        )
+    )
+    X_train = np.array(X_train).reshape(len(X_train), window_size)
+    y_train = np.array(y_train).reshape(len(y_train), 1)
+    X_test = np.array(X_test).reshape(len(X_test), window_size)
+    y_test = np.array(y_test).reshape(len(y_test), 1)
+
+    model = DecisionTreeRegressor(
+        max_depth=model_params["max_depth"],
+        min_samples_split=model_params["min_samples_split"],
+        min_samples_leaf=model_params["min_samples_leaf"],
+        random_state=42,
+    )
+
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+    mse = mean_squared_error(y_test, predictions)
+    mlflow.set_tracking_uri("http://localhost:8080")
+    mlflow.set_experiment("Published_Experiments")
+    # Log parameters and metrics with MLflow
+    with mlflow.start_run(nested=True):
+        mlflow.log_params(
+            {
+                "max_depth": model_params["max_depth"],
+                "min_samples_split": model_params["min_samples_split"],
+                "min_samples_leaf": model_params["min_samples_leaf"],
+                "model_type": "DecisionTreeRegressor",
+            }
+        )
+        for key, value in params.items():
+            mlflow.log_param(key, value)
+        mlflow.log_metric("mse", mse)
+        mlflow.set_tag("model", "DecisionTreeRegressor")
+        signature = infer_signature(X_train, model.predict(X_train))
+        model_info = mlflow.sklearn.log_model(model, "model", signature=signature)
+        print(model_info.model_uri)
+
+
 ### SV Regressor
 def SVR_optimizer(trial, X_train, y_train, X_test, y_test, params):
     c = trial.suggest_float("c", 1e-10, 1e10, log=True)
@@ -409,6 +557,78 @@ def SVReg(
         lambda trial: SVR_optimizer(trial, X_train, y_train, X_test, y_test, params),
         n_trials=20,
     )
+
+
+def SVR_create_model(
+    symbol="BTCUSDT",
+    candle="Close",
+    startDate="1514764800000",
+    endDate="1715904000000",
+    interval="1d",
+    train_size=0.8,
+    window_size=20,
+    horizon=1,
+    model_params={},
+):
+    params = {
+        "symbol": symbol,
+        "candle": candle,
+        "startDate": startDate,
+        "endDate": endDate,
+        "interval": interval,
+        "train_size": train_size,
+        "window_size": window_size,
+        "horizon": horizon,
+    }
+    data = preprocess.preprocess_univariate_candle(
+        symbol, candle, startDate, endDate, interval
+    )
+
+    data = data[["log_return"]]
+
+    X_train, y_train, X_test, y_test, train_time, test_time = (
+        preprocess.split_time_series(
+            data,
+            train_size,
+            window_size,
+            horizon,
+            mode="univariate",
+            target="log_return",
+        )
+    )
+    X_train = np.array(X_train).reshape(len(X_train), window_size)
+    y_train = np.array(y_train).reshape(len(y_train), 1)
+    X_test = np.array(X_test).reshape(len(X_test), window_size)
+    y_test = np.array(y_test).reshape(len(y_test), 1)
+
+    model = SVR(
+        C=model_params["C"],
+        epsilon=model_params["epsilon"],
+        gamma=model_params["gamma"],
+    )
+
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+    mse = mean_squared_error(y_test, predictions)
+    mlflow.set_tracking_uri("http://localhost:8080")
+    mlflow.set_experiment("Published_Experiments")
+    # Log parameters and metrics with MLflow
+    with mlflow.start_run(nested=True):
+        mlflow.log_params(
+            {
+                "C": model_params["C"],
+                "epsilon": model_params["epsilon"],
+                "gamma": model_params["gamma"],
+                "model_type": "SVR",
+            }
+        )
+        for key, value in params.items():
+            mlflow.log_param(key, value)
+        mlflow.log_metric("mse", mse)
+        mlflow.set_tag("model", "SVR")
+        signature = infer_signature(X_train, model.predict(X_train))
+        model_info = mlflow.sklearn.log_model(model, "model", signature=signature)
+        print(model_info.model_uri)
 
 
 #### Gradient Boosting
@@ -495,14 +715,89 @@ def GB(
     )
 
 
+def GB_create_model(
+    symbol="BTCUSDT",
+    candle="Close",
+    startDate="1514764800000",
+    endDate="1715904000000",
+    interval="1d",
+    train_size=0.8,
+    window_size=20,
+    horizon=1,
+    model_params={},
+):
+    params = {
+        "symbol": symbol,
+        "candle": candle,
+        "startDate": startDate,
+        "endDate": endDate,
+        "interval": interval,
+        "train_size": train_size,
+        "window_size": window_size,
+        "horizon": horizon,
+    }
+    data = preprocess.preprocess_univariate_candle(
+        symbol, candle, startDate, endDate, interval
+    )
+
+    data = data[["log_return"]]
+
+    X_train, y_train, X_test, y_test, train_time, test_time = (
+        preprocess.split_time_series(
+            data,
+            train_size,
+            window_size,
+            horizon,
+            mode="univariate",
+            target="log_return",
+        )
+    )
+    X_train = np.array(X_train).reshape(len(X_train), window_size)
+    y_train = np.array(y_train).reshape(len(y_train), 1)
+    X_test = np.array(X_test).reshape(len(X_test), window_size)
+    y_test = np.array(y_test).reshape(len(y_test), 1)
+
+    model = GradientBoostingRegressor(
+        n_estimators=model_params["n_estimators"],
+        max_depth=model_params["max_depth"],
+        min_samples_split=model_params["min_samples_split"],
+        min_samples_leaf=model_params["min_samples_leaf"],
+        random_state=42,
+    )
+
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+    mse = mean_squared_error(y_test, predictions)
+    mlflow.set_tracking_uri("http://localhost:8080")
+    mlflow.set_experiment("Published_Experiments")
+    # Log parameters and metrics with MLflow
+    with mlflow.start_run(nested=True):
+        mlflow.log_params(
+            {
+                "n_estimators": model_params["n_estimators"],
+                "max_depth": model_params["max_depth"],
+                "min_samples_split": model_params["min_samples_split"],
+                "min_samples_leaf": model_params["min_samples_leaf"],
+                "model_type": "GradientBoostingRegressor",
+            }
+        )
+        for key, value in params.items():
+            mlflow.log_param(key, value)
+        mlflow.log_metric("mse", mse)
+        mlflow.set_tag("model", "GradientBoostingRegressor")
+        signature = infer_signature(X_train, model.predict(X_train))
+        model_info = mlflow.sklearn.log_model(model, "model", signature=signature)
+        print(model_info.model_uri)
+
+
 #####
 def XGB_optimizer(trial, X_train, y_train, X_test, y_test, params):
     n_estimators = trial.suggest_int("n_estimators", 10, 100)
     max_depth = trial.suggest_int("max_depth", 2, 32)
     max_leaves = trial.suggest_int("max_leaves", 2, 32)
     grow_policy = trial.suggest_categorical("grow_policy", ["depthwise", "lossguide"])
-    learning_rate = trial.suggest_float("learning_rate", 0.01, 0.1)
-    reg_alpha = trial.suggest_float("reg_alpha", 0.01, 0.1)
+    learning_rate = trial.suggest_float("learning_rate", 0.01, 0.06)
+    reg_alpha = trial.suggest_float("reg_alpha", 0.01, 0.04)
     reg_lambda = trial.suggest_float("reg_lambda", 0.01, 0.1)
     eval_metric = trial.suggest_categorical(
         "eval_metric", [mean_squared_error, mean_absolute_error]
@@ -588,8 +883,88 @@ def XGB(
     study = optuna.create_study(direction="minimize")
     study.optimize(
         lambda trial: XGB_optimizer(trial, X_train, y_train, X_test, y_test, params),
-        n_trials=30,
+        n_trials=40,
     )
+
+
+def XGB_create_model(
+    symbol="BTCUSDT",
+    candle="Close",
+    startDate="1514764800000",
+    endDate="1715904000000",
+    interval="1d",
+    train_size=0.8,
+    window_size=20,
+    horizon=1,
+    model_params={},
+):
+    params = {
+        "symbol": symbol,
+        "candle": candle,
+        "startDate": startDate,
+        "endDate": endDate,
+        "interval": interval,
+        "train_size": train_size,
+        "window_size": window_size,
+        "horizon": horizon,
+    }
+    data = preprocess.preprocess_univariate_candle(
+        symbol, candle, startDate, endDate, interval
+    )
+
+    data = data[["log_return"]]
+
+    X_train, y_train, X_test, y_test, train_time, test_time = (
+        preprocess.split_time_series(
+            data,
+            train_size,
+            window_size,
+            horizon,
+            mode="univariate",
+            target="log_return",
+        )
+    )
+    X_train = np.array(X_train).reshape(len(X_train), window_size)
+    y_train = np.array(y_train).reshape(len(y_train), 1)
+    X_test = np.array(X_test).reshape(len(X_test), window_size)
+    y_test = np.array(y_test).reshape(len(y_test), 1)
+
+    model = xgb.XGBRegressor(
+        n_estimators=model_params["n_estimators"],
+        max_depth=model_params["max_depth"],
+        max_leaves=model_params["max_leaves"],
+        grow_policy=model_params["grow_policy"],
+        learning_rate=model_params["learning_rate"],
+        reg_alpha=model_params["reg_alpha"],
+        reg_lambda=model_params["reg_lambda"],
+    )
+
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+    mse = mean_squared_error(y_test, predictions)
+    mlflow.set_tracking_uri("http://localhost:8080")
+    mlflow.set_experiment("Published_Experiments")
+    # Log parameters and metrics with MLflow
+    with mlflow.start_run(nested=True):
+        mlflow.log_params(
+            {
+                "n_estimators": model_params["n_estimators"],
+                "max_depth": model_params["max_depth"],
+                "max_leaves": model_params["max_leaves"],
+                "grow_policy": model_params["grow_policy"],
+                "learning_rate": model_params["learning_rate"],
+                "reg_alpha": model_params["reg_alpha"],
+                "reg_lambda": model_params["reg_lambda"],
+                "model_type": "XGBRegressor",
+            }
+        )
+        for key, value in params.items():
+            mlflow.log_param(key, value)
+        mlflow.log_metric("mse", mse)
+        mlflow.set_tag("model", "XGBRegressor")
+        signature = infer_signature(X_train, model.predict(X_train))
+        model_info = mlflow.sklearn.log_model(model, "model", signature=signature)
+        print(model_info.model_uri)
 
 
 #### Voting Regressor
@@ -738,6 +1113,117 @@ def VTRegressor(
     )
 
 
+def VTReg_create_model(
+    symbol="BTCUSDT",
+    candle="Close",
+    startDate="1514764800000",
+    endDate="1715904000000",
+    interval="1d",
+    train_size=0.8,
+    window_size=20,
+    horizon=1,
+    model_params={},
+):
+    params = {
+        "symbol": symbol,
+        "candle": candle,
+        "startDate": startDate,
+        "endDate": endDate,
+        "interval": interval,
+        "train_size": train_size,
+        "window_size": window_size,
+        "horizon": horizon,
+    }
+    data = preprocess.preprocess_univariate_candle(
+        symbol, candle, startDate, endDate, interval
+    )
+
+    data = data[["log_return"]]
+
+    X_train, y_train, X_test, y_test, train_time, test_time = (
+        preprocess.split_time_series(
+            data,
+            train_size,
+            window_size,
+            horizon,
+            mode="univariate",
+            target="log_return",
+        )
+    )
+    X_train = np.array(X_train).reshape(len(X_train), window_size)
+    y_train = np.array(y_train).reshape(len(y_train), 1)
+    X_test = np.array(X_test).reshape(len(X_test), window_size)
+    y_test = np.array(y_test).reshape(len(y_test), 1)
+
+    rf = RandomForestRegressor(
+        n_estimators=model_params["rf_n_estimators"],
+        max_depth=model_params["rf_max_depth"],
+        min_samples_split=model_params["rf_min_samples_split"],
+        min_samples_leaf=model_params["rf_min_samples_leaf"],
+    )
+
+    xgb_model = xgb.XGBRegressor(
+        n_estimators=model_params["xgb_n_estimators"],
+        max_depth=model_params["xgb_max_depth"],
+        max_leaves=model_params["xgb_max_leaves"],
+        grow_policy=model_params["xgb_grow_policy"],
+        learning_rate=model_params["xgb_learning_rate"],
+        reg_alpha=model_params["xgb_reg_alpha"],
+        reg_lambda=model_params["xgb_reg_lambda"],
+    )
+
+    gb = GradientBoostingRegressor(
+        n_estimators=model_params["gb_n_estimators"],
+        max_depth=model_params["gb_max_depth"],
+        min_samples_split=model_params["gb_min_samples_split"],
+        min_samples_leaf=model_params["gb_min_samples_leaf"],
+    )
+
+    model = VotingRegressor(
+        estimators=[
+            ("lr", LinearRegression()),
+            ("rf", rf),
+            ("gb", gb),
+            ("xgb", xgb_model),
+        ]
+    )
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+    mse = mean_squared_error(y_test, predictions)
+    mlflow.set_tracking_uri("http://localhost:8080")
+    mlflow.set_experiment("Published_Experiments")
+    # Log parameters and metrics with MLflow
+    with mlflow.start_run(nested=True):
+        mlflow.log_params(
+            {
+                "rf_n_estimators": model_params["rf_n_estimators"],
+                "rf_max_depth": model_params["rf_max_depth"],
+                "rf_min_samples_split": model_params["rf_min_samples_split"],
+                "rf_min_samples_leaf": model_params["rf_min_samples_leaf"],
+                "xgb_n_estimators": model_params["xgb_n_estimators"],
+                "xgb_max_depth": model_params["xgb_max_depth"],
+                "xgb_max_leaves": model_params["xgb_max_leaves"],
+                "xgb_grow_policy": model_params["xgb_grow_policy"],
+                "xgb_learning_rate": model_params["xgb_learning_rate"],
+                "xgb_reg_alpha": model_params["xgb_reg_alpha"],
+                "xgb_reg_lambda": model_params["xgb_reg_lambda"],
+                "gb_n_estimators": model_params["gb_n_estimators"],
+                "gb_max_depth": model_params["gb_max_depth"],
+                "gb_min_samples_split": model_params["gb_min_samples_split"],
+                "gb_min_samples_leaf": model_params["gb_min_samples_leaf"],
+                "model_type": "VotingRegressor",
+            }
+        )
+        for key, value in params.items():
+            mlflow.log_param(key, value)
+        mlflow.log_metric("mse", mse)
+        mlflow.set_tag("model", "VotingRegressor")
+        signature = infer_signature(X_train, model.predict(X_train))
+        model_info = mlflow.sklearn.log_model(model, "model", signature=signature)
+        print(model_info.model_uri)
+
+
+####
 def LSTM_Optimizer(trial, X_train, y_train, X_test, y_test, params):
     n_layers = trial.suggest_int("n_layers", 1, 3)
 

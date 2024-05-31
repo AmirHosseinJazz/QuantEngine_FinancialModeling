@@ -1,0 +1,25 @@
+apiVersion: 1
+
+datasources:
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: ${POSTGRES_HOST}
+    database: ${DATABASE}
+    user: ${POSTGRES_USER}
+    secureJsonData:
+      password: ${POSTGRES_PASSWORD}
+    isDefault: true
+    jsonData:
+      sslmode: "disable"
+  - name: TimescaleDB
+    type: postgres
+    access: proxy
+    url: ${TIMESCALE_HOST_NAME}
+    database: ${TIMESCALE_DATABASE}
+    user: ${TIMESCALE_USER}
+    secureJsonData:
+      password: ${TIMESCALE_PASSWORD}
+    jsonData:
+      sslmode: "disable"
+    isDefault: false

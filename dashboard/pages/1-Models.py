@@ -49,7 +49,7 @@ while True:
             transition_dict = {"index": _, "log_return": row["log_return"]}
             all_transitions_since_live.append(transition_dict)  # Append each transition
 
-        temp_df = pd.DataFrame(all_transitions_since_live)
+        temp_df = pd.DataFrame(all_transitions_since_live).tail(20)
         fig2 = go.Figure(
             data=[
                 go.Scatter(

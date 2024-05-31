@@ -1,25 +1,25 @@
 #!/bin/bash
 
-# folder_names=("postgres_data" "redis_data")
+folder_names=("grafana" "grafana/grafana_data")
 
-# # Loop through each folder name
-# for folder_name in "${folder_names[@]}"; do
-#     # Check if the folder does not exist
-#     if [ ! -d "$folder_name" ]; then
-#         # Create the folder
-#         mkdir "$folder_name"
-#         echo "Folder created: $folder_name"
-#     else
-#         echo "Folder already exists: $folder_name"
-#     fi
+# Loop through each folder name
+for folder_name in "${folder_names[@]}"; do
+    # Check if the folder does not exist
+    if [ ! -d "$folder_name" ]; then
+        # Create the folder
+        mkdir "$folder_name"
+        echo "Folder created: $folder_name"
+    else
+        echo "Folder already exists: $folder_name"
+    fi
 
-#     chmod 755 "$folder_name"
-#     echo "Permissions set to 755 for folder: $folder_name"
-# done
+    chmod 755 "$folder_name"
+    echo "Permissions set to 755 for folder: $folder_name"
+done
 
 
 # # Define the directories where Dockerfiles are located
-directories=("dashboard" "mlflow")
+directories=("dashboard" "mlflow" "grafana")
 
 # Loop through each directory and copy the .env file there
 for dir in "${directories[@]}"; do
@@ -33,3 +33,6 @@ for dir in "${directories[@]}"; do
 done
 
 # echo "Copied .env to all specified directories."
+
+
+chmod +x ./grafana/grafana-entrypoint.sh
