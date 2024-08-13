@@ -13,7 +13,7 @@ for folder_name in "${folder_names[@]}"; do
         echo "Folder already exists: $folder_name"
     fi
 
-    chmod 755 "$folder_name"
+    sudo chmod 755 "$folder_name"
     echo "Permissions set to 755 for folder: $folder_name"
 done
 

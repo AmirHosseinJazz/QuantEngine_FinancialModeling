@@ -9,9 +9,10 @@ datasources:
     user: ${POSTGRES_USER}
     secureJsonData:
       password: ${POSTGRES_PASSWORD}
-    isDefault: true
+    isDefault: false
     jsonData:
       sslmode: "disable"
+
   - name: TimescaleDB
     type: postgres
     access: proxy
@@ -20,6 +21,13 @@ datasources:
     user: ${TIMESCALE_USER}
     secureJsonData:
       password: ${TIMESCALE_PASSWORD}
+    isDefault: false
     jsonData:
       sslmode: "disable"
+
+  - name: Infinity
+    type: yesoreyeram-infinity-datasource
+    access: proxy
+    url: http://backtest:5000
     isDefault: false
+    editable: true

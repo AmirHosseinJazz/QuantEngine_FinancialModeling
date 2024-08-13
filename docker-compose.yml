@@ -11,19 +11,19 @@ services:
   #     MLFLOW_TRACKING_URI: "http://mlflow:8080"
   #   networks:
   #     - cryptic_net
-  # mlflow:
-  #   build:
-  #     context: ./mlflow
-  #     dockerfile: Dockerfile
-  #   environment:
-  #     MLFLOW_TRACKING_URI: "http://mlflow:8080"
-  #   ports:
-  #     - "8080:8080"
-  #   volumes:
-  #     - ./mlflow/mlflow:/mlflow
-  #     - ./mlflow:/app
-  #   networks:
-  #     - cryptic_net
+  mlflow:
+    build:
+      context: ./mlflow
+      dockerfile: Dockerfile
+    environment:
+      MLFLOW_TRACKING_URI: "http://mlflow:8080"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./mlflow/mlflow:/mlflow
+      - ./mlflow:/app
+    networks:
+      - cryptic_net
   grafana:
     image: grafana/grafana:latest
     user: "root"
@@ -51,6 +51,53 @@ services:
       TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD}
 
     entrypoint: ["/etc/grafana/grafana-entrypoint.sh"]
+    networks:
+      - cryptic_net
+    logging:
+      driver: none
+  # feature_store:
+  #   build:
+  #     context: ./feature_store
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - ./feature_store:/app
+  #   environment:
+  #     POSTGRES_HOST: ${POSTGRES_HOST}
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     DATABASE: ${DATABASE}
+  #     POSTGRES_PORT: ${POSTGRES_PORT}
+  #     LOCAL_TIMESCALE_PORT: ${LOCAL_TIMESCALE_PORT}
+  #     TIMESCALE_HOST_NAME: ${TIMESCALE_HOST_NAME}
+  #     TIMESCALE_DATABASE: ${TIMESCALE_DATABASE}
+  #     TIMESCALE_USER: ${TIMESCALE_USER}
+  #     TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD}
+  #   networks:
+  #     - cryptic_net
+  backtest:
+    build:
+      context: ./backtest
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backtest:/app
+      - ./backtest/tmp/.X11-unix:/tmp/.X11-unix:rw
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE: ${DATABASE}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      LOCAL_TIMESCALE_PORT: ${LOCAL_TIMESCALE_PORT}
+      TIMESCALE_HOST_NAME: ${TIMESCALE_HOST_NAME}
+      TIMESCALE_DATABASE: ${TIMESCALE_DATABASE}
+      TIMESCALE_USER: ${TIMESCALE_USER}
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD}
+      DISPLAY: ${DISPLAY}
+      
     networks:
       - cryptic_net
 networks:

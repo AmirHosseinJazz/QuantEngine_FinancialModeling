@@ -19,7 +19,8 @@ if __name__ == "__main__":
     #         window_size=_window,
     #         horizon=1,
     #     )
-    # for _window in range(100, 480, 50):
+    # for _window in range(240, 540, 60):
+    #     print("Random Forest model is running for window size: ", str(_window), "...")
     #     benchmark_univariate.RF(
     #         symbol="BTCUSDT",
     #         candle="Close",
@@ -28,7 +29,7 @@ if __name__ == "__main__":
     #         interval="1m",
     #         train_size=0.8,
     #         window_size=_window,
-    #         horizon=1,
+    #         horizon=2,
     #     )
     # for _window in range(60, 480, 60):
     #     benchmark_univariate.DT(
@@ -67,17 +68,27 @@ if __name__ == "__main__":
     #         window_size=_window,
     #         horizon=1,
     #     )
-    for _window in range(360, 720, 10):
-        benchmark_univariate.XGB(
-            symbol="BTCUSDT",
-            candle="Close",
-            startDate="1600000000000",
-            endDate="1715904000000",
-            interval="1m",
-            train_size=0.8,
-            window_size=_window,
-            horizon=1,
-        )
+    # for _window in range(360, 720, 10):
+    # benchmark_univariate.XGB(
+    #     symbol="BTCUSDT",
+    #     candle="Close",
+    #     startDate="1600000000000",
+    #     endDate="1715904000000",
+    #     interval="1m",
+    #     train_size=0.8,
+    #     window_size=480,
+    #     horizon=4,
+    # )
+    # benchmark_univariate.XGB(
+    #     symbol="BTCUSDT",
+    #     candle="Close",
+    #     startDate="1600000000000",
+    #     endDate="1715904000000",
+    #     interval="1m",
+    #     train_size=0.8,
+    #     window_size=480,
+    #     horizon=5,
+    # )
     # for _window in range(420, 720, 60):
     #     benchmark_univariate.VTRegressor(
     #         symbol="BTCUSDT",
@@ -174,15 +185,15 @@ if __name__ == "__main__":
     #     interval="1m",
     #     train_size=0.8,
     #     window_size=480,
-    #     horizon=1,
+    #     horizon=5,
     #     model_params={
-    #         "n_estimators": 11,
-    #         "max_depth": 10,
-    #         "reg_alpha": 0.010159975484883675,
-    #         "reg_lambda": 0.050043123020554116,
-    #         "learning_rate": 0.04028030989911358,
+    #         "n_estimators": 94,
+    #         "max_depth": 23,
+    #         "reg_alpha": 0.031153160707680937,
+    #         "reg_lambda": 0.04995954824055655,
+    #         "learning_rate": 0.010890570271129957,
     #         "grow_policy": "depthwise",
-    #         "max_leaves": 21,
+    #         "max_leaves": 2,
     #         "random_state": 42,
     #     },
     # )

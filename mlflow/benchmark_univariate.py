@@ -20,6 +20,7 @@ import xgboost as xgb
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import joblib
 
 # def naive_forecast(
 #     symbol="BTCUSDT",
@@ -209,7 +210,6 @@ def RF(
     train_size=0.8,
     window_size=20,
     horizon=1,
-    mode="inference",
 ):
     params = {
         "symbol": symbol,
@@ -238,12 +238,19 @@ def RF(
         )
     )
     X_train = np.array(X_train).reshape(len(X_train), window_size)
-    y_train = np.array(y_train).reshape(len(y_train), 1)
+    y_train = np.array(y_train).reshape(len(y_train), horizon)
     X_test = np.array(X_test).reshape(len(X_test), window_size)
-    y_test = np.array(y_test).reshape(len(y_test), 1)
+    y_test = np.array(y_test).reshape(len(y_test), horizon)
     study = optuna.create_study(direction="minimize")
     study.optimize(
-        lambda trial: RF_optimizer(trial, X_train, y_train, X_test, y_test, params),
+        lambda trial: RF_optimizer(
+            trial,
+            X_train,
+            y_train[:, (horizon - 1)],
+            X_test,
+            y_test[:, (horizon - 1)],
+            params,
+        ),
         n_trials=20,
     )
 
@@ -289,6 +296,10 @@ def RF_create_model(
     y_train = np.array(y_train).reshape(len(y_train), 1)
     X_test = np.array(X_test).reshape(len(X_test), window_size)
     y_test = np.array(y_test).reshape(len(y_test), 1)
+
+    print(X_train.shape)
+
+    return
 
     model = RandomForestRegressor(
         n_estimators=model_params["n_estimators"],
@@ -877,12 +888,19 @@ def XGB(
         )
     )
     X_train = np.array(X_train).reshape(len(X_train), window_size)
-    y_train = np.array(y_train).reshape(len(y_train), 1)
+    y_train = np.array(y_train).reshape(len(y_train), horizon)
     X_test = np.array(X_test).reshape(len(X_test), window_size)
-    y_test = np.array(y_test).reshape(len(y_test), 1)
+    y_test = np.array(y_test).reshape(len(y_test), horizon)
     study = optuna.create_study(direction="minimize")
     study.optimize(
-        lambda trial: XGB_optimizer(trial, X_train, y_train, X_test, y_test, params),
+        lambda trial: XGB_optimizer(
+            trial,
+            X_train,
+            y_train[:, (horizon - 1)],
+            X_test,
+            y_test[:, (horizon - 1)],
+            params,
+        ),
         n_trials=40,
     )
 
@@ -925,10 +943,12 @@ def XGB_create_model(
         )
     )
     X_train = np.array(X_train).reshape(len(X_train), window_size)
-    y_train = np.array(y_train).reshape(len(y_train), 1)
+    y_train = np.array(y_train).reshape(len(y_train), horizon)
     X_test = np.array(X_test).reshape(len(X_test), window_size)
-    y_test = np.array(y_test).reshape(len(y_test), 1)
+    y_test = np.array(y_test).reshape(len(y_test), horizon)
 
+    y_train=y_train[:, (horizon - 1)]
+    y_test=y_test[:, (horizon - 1)]
     model = xgb.XGBRegressor(
         n_estimators=model_params["n_estimators"],
         max_depth=model_params["max_depth"],
@@ -955,7 +975,7 @@ def XGB_create_model(
                 "learning_rate": model_params["learning_rate"],
                 "reg_alpha": model_params["reg_alpha"],
                 "reg_lambda": model_params["reg_lambda"],
-                "model_type": "XGBRegressor",
+                "model_type": "XGBRegressor_multistep",
             }
         )
         for key, value in params.items():
