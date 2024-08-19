@@ -17,15 +17,26 @@ def get_backtrader_data(
     password = os.getenv("POSTGRES_PASSWORD")
     if interval == "1d":
         interval = "1D"
+    elif interval == "4h":
+        interval = "4H"
     elif interval == "1h":
         interval = "1H"
+    elif interval =='15m':
+        interval = "15M"
     elif interval == "1m":
         interval = "1M"
+    else :
+        raise ValueError("Invalid interval")
     conn = psycopg2.connect(host=host, database=database, user=user, password=password)
     cursor = conn.cursor()
-    query = f"""
-            SELECT "Opentime","Open","High","Low","Close","Volume" FROM "{symbol}"."kline_{interval}" WHERE "Opentime" >= {startDate} AND "Opentime" <= {endDate} ORDER BY "Opentime" ASC
+    if endDate == "now":
+        query = f"""
+            SELECT "Opentime","Open","High","Low","Close","Volume" FROM "{symbol}"."kline_{interval}" WHERE "Opentime" >= {startDate} ORDER BY "Opentime" ASC
             """
+    else:
+        query = f"""
+                SELECT "Opentime","Open","High","Low","Close","Volume" FROM "{symbol}"."kline_{interval}" WHERE "Opentime" >= {startDate} AND "Opentime" <= {endDate} ORDER BY "Opentime" ASC
+               """
     cursor.execute(query)
     data = cursor.fetchall()
     cols = [desc[0] for desc in cursor.description]
